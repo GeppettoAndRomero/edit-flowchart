@@ -1,0 +1,11 @@
+graph TD
+  subgraph App["MyApp 画面"]
+    Header[ヘッダー]
+    subgraph Main[メイン]
+      List[記事リスト]
+      Detail[記事詳細]
+    end
+    Footer[フッター]
+  end
+  Header --> List
+  List -->|タップ| Detail
