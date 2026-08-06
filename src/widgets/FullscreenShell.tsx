@@ -26,9 +26,18 @@
  * and mis-route the same keypress. Capture phase always runs first, before
  * any state update from this event has flushed. (Confirmed bug seen in the
  * canvas editor that motivated this primitive — see #116 D3.)
+ *
+ * The listener is attached in `useLayoutEffect`, not `useEffect`: a plain
+ * `useEffect` runs after the browser paints, so there is a real (if short)
+ * window where the overlay is visible but Escape does nothing yet — trivial
+ * to hit when a caller opens the shell from a synchronous state toggle with
+ * no async work in between (confirmed as a flaky-then-reproducible e2e
+ * failure on such a caller during #116 Phase 1). `useLayoutEffect` runs
+ * synchronously after DOM mutation but before paint, so the listener (and
+ * the initial focus) are live before the overlay is ever visible.
  */
 
-import { useEffect, useRef } from 'preact/hooks';
+import { useLayoutEffect, useRef } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 
 interface FullscreenShellProps {
@@ -67,7 +76,7 @@ export function FullscreenShell({
   const onRequestCloseRef = useRef(onRequestClose);
   onRequestCloseRef.current = onRequestClose;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
     overlayRef.current?.focus();
 
