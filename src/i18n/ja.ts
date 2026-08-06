@@ -101,4 +101,9 @@ export const ja: ToolContent = {
     colophon: '開発・運営は Geppetto。一部のコードは AI の支援を受けて書かれていますが、レビューと最終判断はすべて開発者が行っています。',
     securityText: 'セキュリティ',
   },
+
+  related: {
+    h2: '関連ツール',
+    blogLinkText: '技術解説を読む',
+  },
 };
