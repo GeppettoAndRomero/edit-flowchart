@@ -42,6 +42,8 @@ export const ui = {
     startOverConfirmBody: 'This discards the current flowchart and every change made to it. This cannot be undone.',
     startOverConfirmConfirm: 'Load different',
     startOverConfirmCancel: 'Cancel',
+    editorAria: 'Flowchart editor',
+    closeEditor: 'Close the editor',
 
     // Preview
     previewHeading: 'Preview',
@@ -174,6 +176,8 @@ export const ui = {
     startOverConfirmBody: '現在のフローチャートとすべての変更が失われます。この操作は取り消せません。',
     startOverConfirmConfirm: '別のものを読み込む',
     startOverConfirmCancel: 'キャンセル',
+    editorAria: 'フローチャートエディタ',
+    closeEditor: 'エディタを閉じる',
 
     previewHeading: 'プレビュー',
     previewAria: 'フローチャートのプレビュー',
@@ -291,6 +295,8 @@ export const ui = {
     startOverConfirmBody: '这会丢弃当前流程图及其所有修改，且无法撤销。',
     startOverConfirmConfirm: '加载其他',
     startOverConfirmCancel: '取消',
+    editorAria: '流程图编辑器',
+    closeEditor: '关闭编辑器',
 
     previewHeading: '预览',
     previewAria: '流程图预览',
@@ -408,6 +414,8 @@ export const ui = {
     startOverConfirmBody: 'Damit gehen das aktuelle Flowchart und alle daran vorgenommenen Änderungen verloren. Das lässt sich nicht rückgängig machen.',
     startOverConfirmConfirm: 'Anderes laden',
     startOverConfirmCancel: 'Abbrechen',
+    editorAria: 'Flussdiagramm-Editor',
+    closeEditor: 'Editor schließen',
 
     previewHeading: 'Vorschau',
     previewAria: 'Flowchart-Vorschau',
@@ -525,6 +533,8 @@ export const ui = {
     startOverConfirmBody: 'Esto descarta el diagrama actual y todos los cambios hechos en él. No se puede deshacer.',
     startOverConfirmConfirm: 'Cargar otro',
     startOverConfirmCancel: 'Cancelar',
+    editorAria: 'Editor de diagrama de flujo',
+    closeEditor: 'Cerrar el editor',
 
     previewHeading: 'Vista previa',
     previewAria: 'Vista previa del diagrama de flujo',

@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { AppCard } from './AppCard';
 import { AppModal } from './AppModal';
+import { FullscreenShell } from './FullscreenShell';
 import { FlowchartInspector, type Selection } from './FlowchartInspector';
 import { ui, type UiStrings } from '@/i18n/ui';
 import { validateFile } from '@/utils/fileValidation';
@@ -428,6 +429,24 @@ export function EditFlowchartTool({ locale = 'en' }: EditFlowchartToolProps) {
 
   const hasContent = code.trim() !== '';
 
+  // ---------------------------------------------------------------------
+  // Fullscreen editor overlay lifecycle. FullscreenShell (frozen, #116) owns
+  // the takeover chrome (position:fixed, dialog semantics, focus, body-
+  // scroll lock, capture-phase Escape); it only calls `onRequestClose`, and
+  // this tool decides what "close" means — reusing the existing start-over
+  // confirm dialog (D4), the same pattern as edit-ascii-diagram (#116).
+  // ---------------------------------------------------------------------
+
+  const requestClose = () => {
+    if (code !== importedCode) setConfirmAction('startOver');
+    else performStartOver();
+  };
+
+  const handleRequestClose = () => {
+    if (confirmAction !== null) setConfirmAction(null);
+    else requestClose();
+  };
+
   return (
     <div>
       {!hasContent && (
@@ -494,7 +513,14 @@ export function EditFlowchartTool({ locale = 'en' }: EditFlowchartToolProps) {
       )}
 
       {hasContent && (
-        <div data-testid="editor">
+        <FullscreenShell
+          open={hasContent}
+          onRequestClose={handleRequestClose}
+          label={t.editorAria}
+          closeLabel={t.closeEditor}
+          testId="editor"
+          closeTestId="close-editor"
+        >
           {fenceNotice && (
             <p role="status" style="font-size: var(--fs-1); color: var(--color-subtle);">
               {t.fenceNotice}
@@ -681,7 +707,7 @@ export function EditFlowchartTool({ locale = 'en' }: EditFlowchartToolProps) {
               </li>
             </ul>
           </AppCard>
-        </div>
+        </FullscreenShell>
       )}
 
       <AppModal
