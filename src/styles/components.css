@@ -551,10 +551,30 @@
   gap: var(--space-3);
 }
 
-/* Right-aligned by align-self (not a full-width row) so it costs only its
-   own height, not a whole reserved toolbar strip. */
+/* Fills all height the bottom bar leaves over. The caller's own scroll
+   container (flex: 1 1 auto; min-height: 0) grows to fill this and scrolls
+   internally, not the page. */
+.fullscreen-shell__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: var(--space-3);
+}
+
+/* One row for the caller's own bottom-bar content plus the close button —
+   see #189: an earlier layout gave the close button its own full-width row
+   above the content, which was mostly empty space. */
+.fullscreen-shell__bottombar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 .fullscreen-shell__close {
-  align-self: flex-end;
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;

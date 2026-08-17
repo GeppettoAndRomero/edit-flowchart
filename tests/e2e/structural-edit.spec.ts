@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { waitReady, loadSample, loadFromPaste, SAMPLE_FLOWCHART } from './_helpers';
+import { waitReady, loadSample, loadFromPaste, openBottomBarMenu, SAMPLE_FLOWCHART } from './_helpers';
 
 async function goto(page: import('@playwright/test').Page) {
   await page.goto('/edit-flowchart/');
@@ -28,6 +28,7 @@ test.describe('structural editing', () => {
 
     // Add a node -> a new bare line appears in the code pane, and the node
     // count in the summary goes up by one.
+    await openBottomBarMenu(page);
     await page.locator('#add-node-action').click();
     await expect(codePane).toHaveValue(/\bn1\b/);
 
@@ -81,6 +82,7 @@ test.describe('structural editing', () => {
       delete (window as unknown as Record<string, unknown>).showSaveFilePicker;
     });
     await loadSample(page);
+    await openBottomBarMenu(page);
     await page.locator('#add-node-action').click();
     const code = await page.locator('[data-testid="code-pane"]').inputValue();
 
@@ -99,6 +101,7 @@ test.describe('structural editing', () => {
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await goto(page);
     await loadSample(page);
+    await openBottomBarMenu(page);
     await page.locator('#add-node-action').click();
     const afterCode = await page.locator('[data-testid="code-pane"]').inputValue();
 

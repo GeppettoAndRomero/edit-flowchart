@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitReady, loadSample } from './_helpers';
+import { waitReady, loadSample, openBottomBarMenu } from './_helpers';
 
 /**
  * The fullscreen-takeover overlay (frozen FullscreenShell primitive, #116):
@@ -74,6 +74,7 @@ test.describe('fullscreen editor overlay', () => {
     await page.goto('/edit-flowchart/');
     await waitReady(page);
     await loadSample(page);
+    await openBottomBarMenu(page);
     await page.locator('#add-node-action').click(); // a real edit — code now differs from the imported original
 
     await page.keyboard.press('Escape');
@@ -104,10 +105,27 @@ test.describe('fullscreen editor overlay', () => {
 
     // With edits: confirm dialog.
     await loadSample(page);
+    await openBottomBarMenu(page);
     await page.locator('#add-node-action').click();
     await page.click('[data-testid="close-editor"]');
     await expect(page.locator('#confirm-start-over-action')).toBeVisible();
     await page.locator('#confirm-start-over-action').click();
     await expect(page.locator('[data-testid="editor"]')).toHaveCount(0);
+  });
+
+  test('the bottom-bar menu collapses behind a hamburger toggle on narrow viewports', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 700 });
+    await page.goto('/edit-flowchart/');
+    await waitReady(page);
+    await loadSample(page);
+
+    const details = page.getByTestId('stats-nodes');
+    await expect(details).not.toBeVisible();
+
+    const toggle = page.getByTestId('bottombar-toggle');
+    await expect(toggle).toBeVisible();
+    await toggle.click();
+    await expect(details).toBeVisible();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   });
 });

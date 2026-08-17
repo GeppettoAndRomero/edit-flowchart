@@ -32,3 +32,15 @@ export async function loadFromPaste(page: Page, code: string) {
   await page.locator('#load-from-text-action').click();
   await page.locator('[data-testid="flowchart-preview"] svg').waitFor({ state: 'visible', timeout: 10_000 });
 }
+
+/**
+ * Below the 640px hamburger breakpoint (#189), the toolbar/export/summary
+ * controls live inside FullscreenShell's bottomBar `__details` panel and
+ * are only reachable once the hamburger toggle opens it. On wide viewports
+ * the toggle itself is hidden and the controls are already visible, so this
+ * is a no-op there.
+ */
+export async function openBottomBarMenu(page: Page) {
+  const toggle = page.getByTestId('bottombar-toggle');
+  if (await toggle.isVisible()) await toggle.click();
+}

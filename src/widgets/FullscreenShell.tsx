@@ -12,11 +12,23 @@
  *
  * This widget owns the overlay chrome only: the fixed frame, dialog
  * semantics, focus-on-open, body scroll lock, the Escape key, and the
- * top-right ESC/× close control. It does NOT know whether the caller is a
- * read-only viewer or an editor with unsaved edits — `onRequestClose` is
- * called on Escape or the close button and the caller decides what closing
- * means (discard immediately, or confirm-if-dirty via AppModal). See D4 in
- * runlocally issue #116.
+ * close control. It does NOT know whether the caller is a read-only viewer
+ * or an editor with unsaved edits — `onRequestClose` is called on Escape or
+ * the close button and the caller decides what closing means (discard
+ * immediately, or confirm-if-dirty via AppModal). See D4 in runlocally
+ * issue #116.
+ *
+ * `children` is the main content area (the table/canvas/pane — whatever the
+ * caller needs full height for) and fills all space the bottom bar leaves
+ * over. `bottomBar` is the caller's own toolbar content (file meta, format
+ * controls, "load another file", etc.) — the shell renders it in a single
+ * row alongside its own close button rather than reserving a separate row
+ * for the close button above the content, so nothing above the content
+ * area sits empty except the close button (see #189: the original layout
+ * gave the close button its own top row, which was mostly blank space).
+ * The caller decides what, if anything, collapses behind a narrow-viewport
+ * toggle within its own `bottomBar` content — the shell has no opinion on
+ * what's collapsible since that varies per tool.
  *
  * The Escape listener is registered in the CAPTURE phase, deliberately: a
  * caller that opens its own AppModal confirm dialog in response to
@@ -53,7 +65,13 @@ interface FullscreenShellProps {
   label: string;
   /** aria-label/title for the close button (typically the caller's t.close). */
   closeLabel: string;
+  /** Main content — fills all height the bottom bar leaves over. */
   children: ComponentChildren;
+  /**
+   * Caller's own bottom-bar content (file meta, format controls, "load
+   * another" button, etc.), rendered in the same row as the close button.
+   */
+  bottomBar: ComponentChildren;
   /** data-testid on the outer dialog element. Defaults to 'fullscreen-shell'. */
   testId?: string;
   /** data-testid on the close button. Defaults to 'fullscreen-shell-close'. */
@@ -66,6 +84,7 @@ export function FullscreenShell({
   label,
   closeLabel,
   children,
+  bottomBar,
   testId = 'fullscreen-shell',
   closeTestId = 'fullscreen-shell-close',
 }: FullscreenShellProps) {
@@ -110,20 +129,23 @@ export function FullscreenShell({
       data-testid={testId}
     >
       <div class="fullscreen-shell__inner">
-        <button
-          type="button"
-          class="fullscreen-shell__close"
-          onClick={onRequestClose}
-          aria-label={closeLabel}
-          title={closeLabel}
-          data-testid={closeTestId}
-        >
-          <kbd class="fullscreen-shell__close-kbd">ESC</kbd>
-          <span class="fullscreen-shell__close-x" aria-hidden="true">
-            ×
-          </span>
-        </button>
-        {children}
+        <div class="fullscreen-shell__content">{children}</div>
+        <div class="fullscreen-shell__bottombar">
+          {bottomBar}
+          <button
+            type="button"
+            class="fullscreen-shell__close"
+            onClick={onRequestClose}
+            aria-label={closeLabel}
+            title={closeLabel}
+            data-testid={closeTestId}
+          >
+            <kbd class="fullscreen-shell__close-kbd">ESC</kbd>
+            <span class="fullscreen-shell__close-x" aria-hidden="true">
+              ×
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -127,6 +127,8 @@ export function EditFlowchartTool({ locale = 'en' }: EditFlowchartToolProps) {
   const [fileError, setFileError] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<'reset' | 'startOver' | null>(null);
   const [copiedButton, setCopiedButton] = useState<string | null>(null);
+  // Narrow-viewport bottom-bar menu (toolbar, export actions, summary) toggle.
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const previewRef = useRef<HTMLDivElement | null>(null);
   const tokenRef = useRef(0);
@@ -401,6 +403,7 @@ export function EditFlowchartTool({ locale = 'en' }: EditFlowchartToolProps) {
     setImportedCode('');
     setCode('');
     setHistory({ stack: [''], index: 0 });
+    setMenuOpen(false);
   };
 
   // ---------------------------------------------------------------------
@@ -520,193 +523,208 @@ export function EditFlowchartTool({ locale = 'en' }: EditFlowchartToolProps) {
           closeLabel={t.closeEditor}
           testId="editor"
           closeTestId="close-editor"
-        >
-          {fenceNotice && (
-            <p role="status" style="font-size: var(--fs-1); color: var(--color-subtle);">
-              {t.fenceNotice}
-            </p>
-          )}
+          bottomBar={
+            <div class="flowchart-bottombar">
+              <div
+                class={menuOpen ? 'flowchart-bottombar__details is-open' : 'flowchart-bottombar__details'}
+                id="flowchart-bottombar-details"
+              >
+                <div class="flowchart-stats">
+                  <span data-testid="stats-nodes">{t.statsNodes.replace('{count}', String(nodeCount))}</span>
+                  <span data-testid="stats-edges">{t.statsEdges.replace('{count}', String(edgeCount))}</span>
+                  <span data-testid="stats-coverage">
+                    {t.statsCoverage
+                      .replace('{parsed}', String(totalLines - opaqueCount))
+                      .replace('{total}', String(totalLines))
+                      .replace('{unsupported}', String(opaqueCount))}
+                  </span>
+                  <span data-testid="stats-diff">
+                    {diffStats.skipped
+                      ? t.statsDiffSkipped
+                      : t.statsDiff.replace('{added}', String(diffStats.added)).replace('{removed}', String(diffStats.removed))}
+                  </span>
+                </div>
 
-          <AppCard>
-            <div
-              style="display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; margin-bottom: var(--space-4);"
-              role="toolbar"
-              aria-label={t.inspectorHeading}
-            >
-              <label style="display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-2);" for="direction-select">
-                {t.directionLabel}
-                <select
-                  id="direction-select"
-                  class="app-field__select"
-                  value={headerLine?.direction ?? 'TD'}
-                  disabled={!doc}
-                  onChange={(e) => onSetDirection((e.currentTarget as HTMLSelectElement).value as Direction)}
+                <div class="flowchart-toolbar" role="toolbar" aria-label={t.inspectorHeading}>
+                  <label style="display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-2);" for="direction-select">
+                    {t.directionLabel}
+                    <select
+                      id="direction-select"
+                      class="app-field__select"
+                      value={headerLine?.direction ?? 'TD'}
+                      disabled={!doc}
+                      onChange={(e) => onSetDirection((e.currentTarget as HTMLSelectElement).value as Direction)}
+                    >
+                      {DIRECTIONS.map((d) => (
+                        <option value={d}>{(t as Record<string, string>)[DIRECTION_KEY[d]]}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <button id="add-node-action" type="button" class="app-button app-button--secondary" disabled={!doc} onClick={onAddNode}>
+                    {t.addNode}
+                  </button>
+                  <button
+                    id="add-edge-toolbar-action"
+                    type="button"
+                    class="app-button app-button--secondary"
+                    disabled={!doc}
+                    onClick={() => setSelection(null)}
+                  >
+                    {t.addEdge}
+                  </button>
+                  <button id="undo-action" type="button" class="app-button app-button--ghost" disabled={history.index <= 0} onClick={undo}>
+                    {t.undo}
+                  </button>
+                  <button
+                    id="redo-action"
+                    type="button"
+                    class="app-button app-button--ghost"
+                    disabled={history.index >= history.stack.length - 1}
+                    onClick={redo}
+                  >
+                    {t.redo}
+                  </button>
+                  <button id="reset-action" type="button" class="app-button app-button--ghost" onClick={() => setConfirmAction('reset')}>
+                    {t.reset}
+                  </button>
+                  <button id="start-over-action" type="button" class="app-button app-button--ghost" onClick={() => setConfirmAction('startOver')}>
+                    {t.startOver}
+                  </button>
+                </div>
+
+                <div class="flowchart-output-actions">
+                  <button id="copy-code-action" type="button" class="app-button app-button--secondary" onClick={() => void copyText(code, 'copy-code-action')}>
+                    {copiedButton === 'copy-code-action' ? t.copied : t.copyCode}
+                  </button>
+                  <button
+                    id="copy-fenced-action"
+                    type="button"
+                    class="app-button app-button--secondary"
+                    onClick={() => void copyText('```mermaid\n' + (code.endsWith('\n') ? code : `${code}\n`) + '```\n', 'copy-fenced-action')}
+                  >
+                    {copiedButton === 'copy-fenced-action' ? t.copied : t.copyFenced}
+                  </button>
+                  <button
+                    id="copy-for-ai-action"
+                    type="button"
+                    class="app-button app-button--secondary"
+                    onClick={() => void copyText(buildAiInstructionCopy(t.aiCopyIntro, importedCode, code), 'copy-for-ai-action')}
+                  >
+                    {copiedButton === 'copy-for-ai-action' ? t.copied : t.copyForAI}
+                  </button>
+                </div>
+              </div>
+
+              <div class="flowchart-bottombar__row">
+                <button
+                  type="button"
+                  class="flowchart-bottombar__toggle"
+                  data-testid="bottombar-toggle"
+                  aria-expanded={menuOpen}
+                  aria-controls="flowchart-bottombar-details"
+                  onClick={() => setMenuOpen((o) => !o)}
                 >
-                  {DIRECTIONS.map((d) => (
-                    <option value={d}>{(t as Record<string, string>)[DIRECTION_KEY[d]]}</option>
-                  ))}
-                </select>
-              </label>
+                  <span aria-hidden="true">☰</span>
+                  <span class="visually-hidden">{t.moreOptions}</span>
+                </button>
 
-              <button id="add-node-action" type="button" class="app-button app-button--secondary" disabled={!doc} onClick={onAddNode}>
-                {t.addNode}
-              </button>
-              <button
-                id="add-edge-toolbar-action"
-                type="button"
-                class="app-button app-button--secondary"
-                disabled={!doc}
-                onClick={() => setSelection(null)}
-              >
-                {t.addEdge}
-              </button>
-              <button id="undo-action" type="button" class="app-button app-button--ghost" disabled={history.index <= 0} onClick={undo}>
-                {t.undo}
-              </button>
-              <button
-                id="redo-action"
-                type="button"
-                class="app-button app-button--ghost"
-                disabled={history.index >= history.stack.length - 1}
-                onClick={redo}
-              >
-                {t.redo}
-              </button>
-              <button id="reset-action" type="button" class="app-button app-button--ghost" onClick={() => setConfirmAction('reset')}>
-                {t.reset}
-              </button>
-              <button id="start-over-action" type="button" class="app-button app-button--ghost" onClick={() => setConfirmAction('startOver')}>
-                {t.startOver}
-              </button>
+                <button id="download-mmd-action" type="button" class="app-button app-button--primary" onClick={() => void downloadMmd(code)}>
+                  {t.downloadMmd}
+                </button>
+              </div>
             </div>
-
-            {parseError && (
-              <p role="alert" data-testid="parse-error" style="color: var(--color-danger); font-size: var(--fs-2); margin: 0 0 var(--space-3) 0;">
-                {t.parseErrorLabel.replace('{line}', String(parseError.line)).replace('{message}', parseError.message)}
+          }
+        >
+          <div class="flowchart-canvas">
+            {fenceNotice && (
+              <p role="status" style="font-size: var(--fs-1); color: var(--color-subtle);">
+                {t.fenceNotice}
               </p>
             )}
 
-            <div style="display: flex; gap: var(--space-4); flex-wrap: wrap; align-items: flex-start;">
-              <div style="flex: 2 1 360px; min-width: 280px;">
-                <h3 style="font-size: var(--fs-3); margin: 0 0 var(--space-2) 0;">
-                  {t.previewHeading}
-                  {status === 'processing' && (
-                    <span aria-hidden="true" style="font-weight: 400; font-size: var(--fs-1); color: var(--color-subtle);">
-                      {' '}
-                      …
-                    </span>
+            <AppCard>
+              {parseError && (
+                <p role="alert" data-testid="parse-error" style="color: var(--color-danger); font-size: var(--fs-2); margin: 0 0 var(--space-3) 0;">
+                  {t.parseErrorLabel.replace('{line}', String(parseError.line)).replace('{message}', parseError.message)}
+                </p>
+              )}
+
+              <div style="display: flex; gap: var(--space-4); flex-wrap: wrap; align-items: flex-start;">
+                <div style="flex: 2 1 360px; min-width: 280px;">
+                  <h3 style="font-size: var(--fs-3); margin: 0 0 var(--space-2) 0;">
+                    {t.previewHeading}
+                    {status === 'processing' && (
+                      <span aria-hidden="true" style="font-weight: 400; font-size: var(--fs-1); color: var(--color-subtle);">
+                        {' '}
+                        …
+                      </span>
+                    )}
+                  </h3>
+                  {svgIsStale && (
+                    <p role="status" data-testid="stale-badge" style="font-size: var(--fs-1); color: var(--color-subtle);">
+                      {t.previewStale}
+                    </p>
                   )}
-                </h3>
-                {svgIsStale && (
-                  <p role="status" data-testid="stale-badge" style="font-size: var(--fs-1); color: var(--color-subtle);">
-                    {t.previewStale}
-                  </p>
-                )}
-                {doc && !svgSelection && !svgIsStale && (
-                  <p style="font-size: var(--fs-1); color: var(--color-subtle);">{t.svgSelectionUnavailable}</p>
-                )}
-                <div
-                  class="flowchart-preview"
-                  ref={previewRef}
-                  role="img"
-                  aria-label={t.previewAria}
-                  data-testid="flowchart-preview"
-                  style="width: 100%; overflow: auto; min-height: 160px;"
-                  onClick={onPreviewClick}
-                />
-              </div>
-
-              <div style="flex: 1 1 260px; min-width: 240px;">
-                <h3 style="font-size: var(--fs-3); margin: 0 0 var(--space-2) 0;">{t.inspectorHeading}</h3>
-                {doc ? (
-                  <FlowchartInspector
-                    doc={doc}
-                    selection={selection}
-                    onSelect={setSelection}
-                    onUpdateNodeLabel={onUpdateNodeLabel}
-                    onSetNodeShape={onSetNodeShape}
-                    onMoveNode={onMoveNode}
-                    onRemoveNode={onRemoveNode}
-                    onUpdateEdge={onUpdateEdge}
-                    onRemoveEdge={onRemoveEdge}
-                    onAddEdge={onAddEdgeSubmit}
-                    addEdgeSource={addEdgeSource}
-                    addEdgeTarget={addEdgeTarget}
-                    onAddEdgeSourceChange={setAddEdgeSource}
-                    onAddEdgeTargetChange={setAddEdgeTarget}
-                    blockedMessage={blockedMessage}
-                    t={t}
+                  {doc && !svgSelection && !svgIsStale && (
+                    <p style="font-size: var(--fs-1); color: var(--color-subtle);">{t.svgSelectionUnavailable}</p>
+                  )}
+                  <div
+                    class="flowchart-preview"
+                    ref={previewRef}
+                    role="img"
+                    aria-label={t.previewAria}
+                    data-testid="flowchart-preview"
+                    style="width: 100%; overflow: auto; min-height: 160px;"
+                    onClick={onPreviewClick}
                   />
-                ) : (
-                  <p style="font-size: var(--fs-2); color: var(--color-subtle);">{t.previewStale}</p>
-                )}
+                </div>
+
+                <div style="flex: 1 1 260px; min-width: 240px;">
+                  <h3 style="font-size: var(--fs-3); margin: 0 0 var(--space-2) 0;">{t.inspectorHeading}</h3>
+                  {doc ? (
+                    <FlowchartInspector
+                      doc={doc}
+                      selection={selection}
+                      onSelect={setSelection}
+                      onUpdateNodeLabel={onUpdateNodeLabel}
+                      onSetNodeShape={onSetNodeShape}
+                      onMoveNode={onMoveNode}
+                      onRemoveNode={onRemoveNode}
+                      onUpdateEdge={onUpdateEdge}
+                      onRemoveEdge={onRemoveEdge}
+                      onAddEdge={onAddEdgeSubmit}
+                      addEdgeSource={addEdgeSource}
+                      addEdgeTarget={addEdgeTarget}
+                      onAddEdgeSourceChange={setAddEdgeSource}
+                      onAddEdgeTargetChange={setAddEdgeTarget}
+                      blockedMessage={blockedMessage}
+                      t={t}
+                    />
+                  ) : (
+                    <p style="font-size: var(--fs-2); color: var(--color-subtle);">{t.previewStale}</p>
+                  )}
+                </div>
               </div>
-            </div>
-          </AppCard>
+            </AppCard>
 
-          <AppCard className="mt-6">
-            <h3 style="font-size: var(--fs-3); margin: 0 0 var(--space-2) 0;">{t.codeHeading}</h3>
-            <p style="margin: 0 0 var(--space-2) 0; font-size: var(--fs-1); color: var(--color-subtle);">{t.codeHint}</p>
-            <label class="visually-hidden" for="code-pane">
-              {t.codeLabel}
-            </label>
-            <textarea
-              id="code-pane"
-              data-testid="code-pane"
-              class="app-field__textarea"
-              style="width: 100%; min-height: 220px; font-family: var(--font-mono, monospace); font-size: var(--fs-2);"
-              value={code}
-              spellcheck={false}
-              onInput={(e) => commitCodeDebounced((e.currentTarget as HTMLTextAreaElement).value)}
-            />
-          </AppCard>
-
-          <AppCard className="mt-6">
-            <h3 style="font-size: var(--fs-3); margin: 0 0 var(--space-3) 0;">{t.outputHeading}</h3>
-            <div style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
-              <button id="copy-code-action" type="button" class="app-button app-button--secondary" onClick={() => void copyText(code, 'copy-code-action')}>
-                {copiedButton === 'copy-code-action' ? t.copied : t.copyCode}
-              </button>
-              <button
-                id="copy-fenced-action"
-                type="button"
-                class="app-button app-button--secondary"
-                onClick={() => void copyText('```mermaid\n' + (code.endsWith('\n') ? code : `${code}\n`) + '```\n', 'copy-fenced-action')}
-              >
-                {copiedButton === 'copy-fenced-action' ? t.copied : t.copyFenced}
-              </button>
-              <button
-                id="copy-for-ai-action"
-                type="button"
-                class="app-button app-button--secondary"
-                onClick={() => void copyText(buildAiInstructionCopy(t.aiCopyIntro, importedCode, code), 'copy-for-ai-action')}
-              >
-                {copiedButton === 'copy-for-ai-action' ? t.copied : t.copyForAI}
-              </button>
-              <button id="download-mmd-action" type="button" class="app-button app-button--primary" onClick={() => void downloadMmd(code)}>
-                {t.downloadMmd}
-              </button>
-            </div>
-          </AppCard>
-
-          <AppCard className="mt-6">
-            <h3 style="font-size: var(--fs-3); margin: 0 0 var(--space-2) 0;">{t.statsHeading}</h3>
-            <ul style="margin: 0; padding-left: 1.2em; font-size: var(--fs-2); color: var(--color-subtle);">
-              <li data-testid="stats-nodes">{t.statsNodes.replace('{count}', String(nodeCount))}</li>
-              <li data-testid="stats-edges">{t.statsEdges.replace('{count}', String(edgeCount))}</li>
-              <li data-testid="stats-coverage">
-                {t.statsCoverage
-                  .replace('{parsed}', String(totalLines - opaqueCount))
-                  .replace('{total}', String(totalLines))
-                  .replace('{unsupported}', String(opaqueCount))}
-              </li>
-              <li data-testid="stats-diff">
-                {diffStats.skipped
-                  ? t.statsDiffSkipped
-                  : t.statsDiff.replace('{added}', String(diffStats.added)).replace('{removed}', String(diffStats.removed))}
-              </li>
-            </ul>
-          </AppCard>
+            <AppCard className="mt-6">
+              <h3 style="font-size: var(--fs-3); margin: 0 0 var(--space-2) 0;">{t.codeHeading}</h3>
+              <p style="margin: 0 0 var(--space-2) 0; font-size: var(--fs-1); color: var(--color-subtle);">{t.codeHint}</p>
+              <label class="visually-hidden" for="code-pane">
+                {t.codeLabel}
+              </label>
+              <textarea
+                id="code-pane"
+                data-testid="code-pane"
+                class="app-field__textarea"
+                style="width: 100%; min-height: 220px; font-family: var(--font-mono, monospace); font-size: var(--fs-2);"
+                value={code}
+                spellcheck={false}
+                onInput={(e) => commitCodeDebounced((e.currentTarget as HTMLTextAreaElement).value)}
+              />
+            </AppCard>
+          </div>
         </FullscreenShell>
       )}
 

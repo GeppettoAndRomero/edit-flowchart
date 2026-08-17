@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitReady, loadSample } from './_helpers';
+import { waitReady, loadSample, openBottomBarMenu } from './_helpers';
 
 // Content routing is engine-independent; one browser is enough.
 test.describe('i18n', () => {
@@ -15,6 +15,7 @@ test.describe('i18n', () => {
       await page.goto(loc.path);
       await waitReady(page);
       await loadSample(page);
+      await openBottomBarMenu(page);
       await page.locator('#add-node-action').click();
       await expect(page.locator('[data-testid="code-pane"]')).toHaveValue(/\bn1\b/);
     });

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitReady, loadSample } from './_helpers';
+import { waitReady, loadSample, openBottomBarMenu } from './_helpers';
 
 // Service-worker / offline behaviour is reliable in Chromium; gate these there.
 test.describe('covenants', () => {
@@ -48,6 +48,7 @@ test.describe('covenants', () => {
     await waitReady(page);
     const before = page.url();
     await loadSample(page);
+    await openBottomBarMenu(page);
     await page.locator('#add-node-action').click();
     expect(page.url()).toBe(before);
     expect(page.url()).not.toMatch(/data:|base64|blob:/i);
@@ -65,6 +66,7 @@ test.describe('covenants', () => {
     // fetched and cached too (see astro.config.mjs manualChunks + the sw.js
     // cache-first strategy for any same-origin .js request).
     await loadSample(page);
+    await openBottomBarMenu(page);
     await page.locator('#add-node-action').click();
 
     await page.context().setOffline(true);
@@ -76,6 +78,7 @@ test.describe('covenants', () => {
       // so the editor — not the idle "Load sample" input screen — comes up
       // directly. Confirm it renders and can still be edited with no network.
       await page.locator('[data-testid="flowchart-preview"] svg').waitFor({ state: 'visible', timeout: 10_000 });
+      await openBottomBarMenu(page);
       await page.locator('#add-node-action').click();
     } finally {
       await page.context().setOffline(false);

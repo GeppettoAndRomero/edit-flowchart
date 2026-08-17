@@ -44,6 +44,7 @@ export const ui = {
     startOverConfirmCancel: 'Cancel',
     editorAria: 'Flowchart editor',
     closeEditor: 'Close the editor',
+    moreOptions: 'Toolbar, summary and export options',
 
     // Preview
     previewHeading: 'Preview',
@@ -178,6 +179,7 @@ export const ui = {
     startOverConfirmCancel: 'キャンセル',
     editorAria: 'フローチャートエディタ',
     closeEditor: 'エディタを閉じる',
+    moreOptions: 'ツールバー・サマリー・書き出しオプション',
 
     previewHeading: 'プレビュー',
     previewAria: 'フローチャートのプレビュー',
@@ -297,6 +299,7 @@ export const ui = {
     startOverConfirmCancel: '取消',
     editorAria: '流程图编辑器',
     closeEditor: '关闭编辑器',
+    moreOptions: '工具栏、摘要和导出选项',
 
     previewHeading: '预览',
     previewAria: '流程图预览',
@@ -416,6 +419,7 @@ export const ui = {
     startOverConfirmCancel: 'Abbrechen',
     editorAria: 'Flussdiagramm-Editor',
     closeEditor: 'Editor schließen',
+    moreOptions: 'Werkzeugleiste, Zusammenfassung und Exportoptionen',
 
     previewHeading: 'Vorschau',
     previewAria: 'Flowchart-Vorschau',
@@ -535,6 +539,7 @@ export const ui = {
     startOverConfirmCancel: 'Cancelar',
     editorAria: 'Editor de diagrama de flujo',
     closeEditor: 'Cerrar el editor',
+    moreOptions: 'Barra de herramientas, resumen y opciones de exportación',
 
     previewHeading: 'Vista previa',
     previewAria: 'Vista previa del diagrama de flujo',

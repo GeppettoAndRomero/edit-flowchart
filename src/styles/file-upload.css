@@ -150,3 +150,120 @@
 .file-item__remove {
   flex-shrink: 0;
 }
+
+/* ========================================
+   Flowchart editor — bottom bar (rendered inside FullscreenShell's
+   bottomBar slot, alongside its close button — see
+   src/widgets/FullscreenShell.tsx). The toolbar, export actions and
+   summary sit inline on wide viewports; below 640px they collapse behind
+   a hamburger toggle so the always-visible row stays down to the toggle,
+   the download action and close (#189).
+   ======================================== */
+
+.flowchart-bottombar {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.flowchart-bottombar__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 0 0 auto;
+}
+
+.flowchart-bottombar__toggle {
+  display: none;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--fs-3);
+  cursor: pointer;
+}
+
+.flowchart-bottombar__toggle:hover {
+  border-color: var(--color-primary);
+}
+
+.flowchart-bottombar__toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.flowchart-bottombar__details {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .flowchart-bottombar {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .flowchart-bottombar__toggle {
+    display: inline-flex;
+  }
+
+  .flowchart-bottombar__details {
+    display: none;
+  }
+
+  .flowchart-bottombar__details.is-open {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    order: -1;
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-3);
+  }
+
+  .flowchart-bottombar__row {
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+.flowchart-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  font-size: var(--fs-2);
+  color: var(--color-subtle);
+}
+
+.flowchart-toolbar,
+.flowchart-output-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+/* Rendered as FullscreenShell's `children`: it fills all height the bottom
+   bar leaves over. flex growth replaces a fixed height, and min-height:0
+   lets it shrink so this scrolls internally, not the page. */
+.flowchart-canvas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
